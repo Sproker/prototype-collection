@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.quiz_question.short_answer_correct
+    - quiz.question.type.short_answer
+  enforced:
+    module:
+      - quiz_short_answer
+id: quiz_question.short_answer.short_answer_correct
+field_name: short_answer_correct
+entity_type: quiz_question
+bundle: short_answer
+label: 'Correct answer'
+description: 'Specify the answer. If this question is manually scored, no answer needs to be supplied.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
+

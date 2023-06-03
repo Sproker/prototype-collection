@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Contains h5p_analytics_tip.module.
+ */
+
+/**
+ * Implements hook_h5p_scripts_alter().
+ */
+function h5p_analytics_tip_h5p_scripts_alter(&$scripts, $libraries, $mode) {
+  if ($mode !== 'editor') {
+    // It seems that "external" mode has a totally different structure for the libraries
+    if ($mode === 'external') {
+      $mappedLibraries = array_keys($libraries);
+    } else {
+      $mappedLibraries = array_map(fn($library) => explode('-', $library)[0], $libraries);
+    }
+
+    if (in_array('h5p/h5p.joubelui', $mappedLibraries) || in_array('H5P.JoubelUI', $mappedLibraries)) {
+      $scripts[] = (object) [
+        'path' => \Drupal::service('extension.list.module')->getPath('h5p_analytics_tip') . '/js/tip.js',
+        'version' => '1.x',
+      ];
+    }
+  }
+}

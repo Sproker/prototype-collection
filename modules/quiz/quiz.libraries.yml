@@ -1,0 +1,10 @@
+styles:
+  css:
+    theme:
+      css/quiz.css: {}
+confirm:
+  js:
+    js/confirm.js: {}
+jumper:
+  js:
+    js/jumper.js: {}

@@ -1,0 +1,29 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.quiz_question.matching.choice_penalty
+    - field.field.quiz_question.matching.quiz_matching
+    - quiz.question.type.matching
+  enforced:
+    module:
+      - quiz_matching
+  module:
+    - text
+id: quiz_question.matching.default
+targetEntityType: quiz_question
+bundle: matching
+mode: default
+content:
+  body:
+    type: text_default
+    weight: 0
+    region: content
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  choice_penalty: true
+  matches: true
+  quiz_matching: true
+

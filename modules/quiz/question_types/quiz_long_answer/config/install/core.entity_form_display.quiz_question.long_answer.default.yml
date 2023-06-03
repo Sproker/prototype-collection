@@ -1,0 +1,54 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.quiz_question.long_answer.answer_text_processing
+    - field.field.quiz_question.long_answer.long_answer_rubric
+    - quiz.question.type.long_answer
+  module:
+    - text
+id: quiz_question.long_answer.default
+targetEntityType: quiz_question
+bundle: long_answer
+mode: default
+content:
+  answer_text_processing:
+    weight: 3
+    settings: {  }
+    third_party_settings: {  }
+    type: options_buttons
+    region: content
+  body:
+    type: text_textarea
+    region: content
+    weight: 1
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  feedback:
+    type: text_textarea
+    region: content
+    weight: 4
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  long_answer_rubric:
+    type: text_textarea
+    weight: 2
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    region: content
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }
+

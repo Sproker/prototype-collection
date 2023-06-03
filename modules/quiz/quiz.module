@@ -1,0 +1,800 @@
+<?php
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Access\AccessResultAllowed;
+use Drupal\Core\Access\AccessResultForbidden;
+use Drupal\Core\Database\Query\AlterableInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\quiz\Entity\Quiz;
+use Drupal\quiz\Entity\QuizResult;
+use Drupal\quiz\Entity\QuizResultAnswerType;
+use Drupal\quiz\Entity\QuizResultType;
+use Drupal\quiz\Entity\QuizType;
+use Drupal\quiz\Services\QuizSessionInterface;
+use Drupal\quiz\Util\QuizUtil;
+use Drupal\views\ViewExecutable;
+
+/**
+ * @file
+ * Contains quiz.module
+ */
+
+/**
+ * Implements hook_help().
+ */
+function quiz_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.quiz':
+      return t('<p>The quiz module allows users to administer a quiz, as a sequence of questions, and track the answers given. It allows for the creation of questions (and their answers), and organizes these questions into a quiz. Its target audience includes educational institutions, online training programs, employers, and people who just want to add a fun activity for their visitors to their Drupal site.</p>
+<p>For more information about Quiz, and resources on how to use Quiz, see the <a href="https://drupal.org/project/quiz">Quiz project website</a></p>');
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function quiz_cron() {
+  $db = Drupal::database();
+  $result_ids = [];
+
+  // Remove old quiz results that haven't been finished.
+  $old_rm_time = Drupal::config('quiz.settings')
+    ->get('remove_partial_quiz_record');
+  // $time = 0 for never.
+  if ($old_rm_time) {
+    $res = $db->select('quiz_result', 'qnr')
+      ->fields('qnr', ['result_id'])
+      ->condition('time_end', 0)
+      ->where('(:request_time - time_start) > :remove_time', [
+        ':request_time' => Drupal::time()->getRequestTime(),
+        ':remove_time' => $old_rm_time,
+      ])
+      ->execute();
+    while ($result_id = $res->fetchField()) {
+      $result_ids[$result_id] = $result_id;
+    }
+  }
+
+  // Remove invalid quiz results.
+  $inv_rm_time = Drupal::config('quiz.settings')
+    ->get('remove_invalid_quiz_record');
+  // $time = 0 for never.
+  if ($inv_rm_time) {
+    $query = $db->select('quiz_result', 'qnr');
+    $query->fields('qnr', ['result_id']);
+    $query->join('quiz', 'qnp', 'qnr.vid = qnp.vid');
+    // If the user has a limited amount of takes we don't delete invalid
+    // results.
+
+    $db_or = $query->orConditionGroup();
+    $db_or->isNull('qnp.takes');
+    $db_or->condition('qnp.takes', 0);
+    $query->condition($db_or);
+
+    $query->condition('qnr.is_invalid', 1);
+    $query->condition('qnr.time_end', Drupal::time()->getRequestTime() - $inv_rm_time, '<=');
+    $res = $query->execute();
+    while ($result_id = $res->fetchField()) {
+      $result_ids[$result_id] = $result_id;
+    }
+  }
+
+  $quiz_results = QuizResult::loadMultiple($result_ids);
+  Drupal::entityTypeManager()->getStorage('quiz_result')->delete($quiz_results);
+}
+
+/**
+ * Implements hook_menu().
+ */
+function quiz_menu() {
+  if (Drupal::moduleHandler()->moduleExists('devel_generate')) {
+    $items['admin/config/development/generate/quiz'] = [
+      'title' => 'Generate quiz',
+      'description' => 'Generate a given number of quizzes and questions.',
+      'access arguments' => ['administer quiz configuration'],
+      'page callback' => 'drupal_get_form',
+      'page arguments' => ['quiz_generate_form'],
+      'file' => 'quiz.devel.inc',
+    ];
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function quiz_theme($existing, $type, $theme, $path) {
+  return [
+    'quiz' => [
+      'render element' => 'elements',
+    ],
+    'quiz_question' => [
+      'render element' => 'elements',
+    ],
+    'quiz_result' => [
+      'render element' => 'elements',
+    ],
+    'quiz_progress' => [
+      'variables' => [
+        'current' => NULL,
+        'total' => NULL,
+      ],
+    ],
+    'question_selection_table' => [
+      'render element' => 'form',
+    ],
+    'quiz_answer_result' => [
+      'variables' => [],
+    ],
+    'quiz_report_form' => [
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-report-form',
+    ],
+    'quiz_question_score' => [
+      'variables' => ['score' => NULL, 'max_score' => NULL, 'class' => NULL],
+      'template' => 'quiz-question-score',
+    ],
+    'quiz_jumper' => [
+      'variables' => ['total' => NULL, 'form' => NULL],
+    ],
+    'quiz_pager' => [
+      'variables' => ['total' => 0, 'current' => 0, 'siblings' => 0],
+    ],
+    'quiz_questions_page' => [
+      'render element' => 'form',
+    ],
+    'quiz_result_summary' => [
+      'variables' => [
+        'quiz_result' => NULL,
+        'summary_passfail' => NULL,
+        'summary_range' => NULL,
+        'attributes' => NULL,
+      ],
+      'template' => 'quiz-result-summary',
+    ],
+    'quiz_result_score' => [
+      'variables' => [
+        'quiz_result' => NULL,
+        'numeric_score' => NULL,
+        'percentage_score' => NULL,
+        'question_count' => NULL,
+        'username' => NULL,
+        'your_total' => NULL,
+        'possible_attributes' => NULL,
+        'percent_attributes' => NULL,
+      ],
+      'template' => 'quiz-result-score',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function quiz_theme_suggestions_quiz(array $variables) {
+  $suggestions = [];
+  $quiz = $variables['elements']['#quiz'];
+  $sanitized_view_mode = strtr($variables['elements']['#view_mode'], '.', '_');
+  $suggestions[] = 'quiz__' . $sanitized_view_mode;
+  $suggestions[] = 'quiz__' . $quiz->bundle();
+  $suggestions[] = 'quiz__' . $quiz->bundle() . '__' . $sanitized_view_mode;
+  $suggestions[] = 'quiz__' . $quiz->id();
+  $suggestions[] = 'quiz__' . $quiz->id() . '__' . $sanitized_view_mode;
+
+  return $suggestions;
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function quiz_theme_suggestions_quiz_result(array $variables) {
+  $suggestions = [];
+  $quiz_result = $variables['elements']['#quiz_result'];
+  $sanitized_view_mode = strtr($variables['elements']['#view_mode'], '.', '_');
+  $suggestions[] = 'quiz_result__' . $sanitized_view_mode;
+  $suggestions[] = 'quiz_result__' . $quiz_result->bundle();
+  $suggestions[] = 'quiz_result__' . $quiz_result->bundle() . '__' . $sanitized_view_mode;
+  $suggestions[] = 'quiz_result__' . $quiz_result->id();
+  $suggestions[] = 'quiz_result__' . $quiz_result->id() . '__' . $sanitized_view_mode;
+
+  return $suggestions;
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function quiz_theme_suggestions_quiz_result_summary(array $variables) {
+  $suggestions = [];
+  $quiz_result = $variables['quiz_result'];
+
+  $suggestions[] = 'quiz_result_summary__' . $quiz_result->bundle();
+  $suggestions[] = 'quiz_result_summary__' . $quiz_result->id();
+  return $suggestions;
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function quiz_theme_suggestions_quiz_result_score(array $variables) {
+  $suggestions = [];
+  $quiz_result = $variables['quiz_result'];
+
+  $suggestions[] = 'quiz_result_score__' . $quiz_result->bundle();
+  $suggestions[] = 'quiz_result_score__' . $quiz_result->id();
+
+  return $suggestions;
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ *
+ * Add extra fields for Quiz entities.
+ */
+function quiz_entity_extra_field_info() {
+  $extra = [];
+
+  // Add extra fields for a take quiz button and stats table.
+  foreach (QuizType::loadMultiple() as $bundle) {
+    $extra['quiz'][$bundle->id()] = [
+      'display' => [
+        'take' => [
+          'label' => t('Take @quiz button', ['@quiz' => QuizUtil::getQuizName()]),
+          'description' => t('The take button.'),
+          'weight' => 10,
+        ],
+        'stats' => [
+          'label' => t('@quiz summary', ['@quiz' => QuizUtil::getQuizName()]),
+          'description' => t('@quiz summary', ['@quiz' => QuizUtil::getQuizName()]),
+          'weight' => 9,
+        ],
+      ],
+    ];
+  }
+
+  // Allow for configurable feedback bits on the quiz result answer.
+  $options = quiz_get_feedback_options();
+  foreach (QuizResultAnswerType::loadMultiple() as $bundle) {
+    $extra['quiz_result_answer'][$bundle->id()]['display']['table'] = [
+      'label' => t('Feedback table'),
+      'description' => t('A table of feedback.'),
+      'weight' => 0,
+      'visible' => TRUE,
+    ];
+    foreach ($options as $option => $label) {
+      $extra['quiz_result_answer'][$bundle->id()]['display'][$option] = [
+        'label' => $label,
+        'description' => t('Feedback for @label.', ['@label' => $label]),
+        'weight' => 0,
+        'visible' => FALSE,
+      ];
+    }
+  }
+
+  // Allow for configurable feedback bits on the quiz result.
+  foreach (QuizResultType::loadMultiple() as $bundle) {
+    $extra['quiz_result'][$bundle->id()]['display'] = [
+      'score' => [
+        'label' => t('Score'),
+        'description' => t('The score of the result.'),
+        'weight' => 1,
+      ],
+      'questions' => [
+        'label' => t('Questions'),
+        'description' => t('The questions in this result.'),
+        'weight' => 2,
+      ],
+      'summary' => [
+        'label' => t('Summary'),
+        'description' => t('The summary and pass/fail text.'),
+        'weight' => 3,
+      ],
+    ];
+  }
+
+  return $extra;
+}
+
+/**
+ * Implements hook_user_cancel().
+ *
+ * Reassign Quiz results to the anonymous user, if requested.
+ */
+function quiz_user_cancel($edit, $account, $method) {
+  if ($method == 'user_cancel_reassign') {
+    Drupal::database()
+      ->query("UPDATE {quiz_result} SET uid = 0 WHERE uid = :uid", [':uid' => $account->id()]);
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function quiz_user_delete($account) {
+  if (Drupal::config('quiz.settings')->get('durod', 0)) {
+    _quiz_delete_users_results($account->id());
+  }
+}
+
+/**
+ * Deletes all results associated with a given user.
+ *
+ * @param int $uid
+ *   The users id.
+ */
+function _quiz_delete_users_results($uid) {
+  $res = Drupal::database()
+    ->query("SELECT result_id FROM {quiz_result} WHERE uid = :uid", [':uid' => $uid]);
+  $result_ids = [];
+  while ($result_id = $res->fetchField()) {
+    $result_ids[] = $result_id;
+  }
+  $controller = \Drupal::entityTypeManager()->getStorage('quiz_result');
+  $entities = $controller->loadMultiple($result_ids);
+  $controller->delete($entities);
+}
+
+/**
+ * Implements hook_quiz_access().
+ *
+ * Can a user take this quiz?
+ */
+function quiz_quiz_access(EntityInterface $entity, $operation, AccountInterface $account) {
+  if ($operation == 'take') {
+    $user_is_admin = $entity->access('update');
+
+    // Make sure this is available.
+    if (!$entity->get('quiz_date')->isEmpty()) {
+      // Compare current GMT time to the open and close dates (which should still
+      // be in GMT time).
+      $request_time = Drupal::time()->getRequestTime();
+      $quiz_date = $entity->get('quiz_date')->get(0)->getValue();
+      $quiz_open = $request_time >= strtotime($quiz_date['value']);
+      $quiz_closed = $request_time >= strtotime($quiz_date['end_value']);
+      if (!$quiz_open || $quiz_closed) {
+        if ($user_is_admin) {
+          $hooks['admin_ignore_date'] = [
+            'success' => TRUE,
+            'message' => (string) t('You are marked as an administrator or owner for this @quiz. While you can take this @quiz, the open/close times prohibit other users from taking this @quiz.', ['@quiz' => QuizUtil::getQuizName()]),
+          ];
+        }
+        else {
+          if ($quiz_closed) {
+            return AccessResultForbidden::forbidden((string) t('This @quiz is closed.', ['@quiz' => QuizUtil::getQuizName()]));
+          }
+          if (!$quiz_open) {
+            return AccessResultForbidden::forbidden((string) t('This @quiz is not yet open.', ['@quiz' => QuizUtil::getQuizName()]));
+          }
+        }
+      }
+    }
+
+    // Check to see if this user is allowed to take the quiz again:
+    if ($entity->get('takes')->getString() > 0) {
+      $taken = Drupal::database()
+        ->query('SELECT COUNT(*) AS takes FROM {quiz_result} WHERE uid = :uid AND qid = :qid', [
+          ':uid' => $account->id(),
+          ':qid' => $entity->id(),
+        ])
+        ->fetchField();
+      $t = Drupal::translation();
+      $allowed_times = $t->formatPlural($entity->get('takes')->getString(), '1 time', '@count times');
+      $taken_times = $t->formatPlural($taken, '1 time', '@count times');
+
+      // The user has already taken this quiz.
+      if ($taken) {
+        if (FALSE && $user_is_admin) {
+          $hooks['owner_limit'] = [
+            'success' => TRUE,
+            'message' => (string) t('You have taken this @quiz already. You are marked as an owner or administrator for this quiz, so you can take this quiz as many times as you would like.', ['@quiz' => QuizUtil::getQuizName()]),
+          ];
+        }
+        // If the user has already taken this quiz too many times, stop the user.
+        elseif ($taken >= $entity->get('takes')->getString()) {
+          /* @var $quiz_session QuizSessionInterface */
+          $quiz_session = Drupal::service('quiz.session');
+          if ($entity->allow_resume->value && $entity->getResumeableResult($account)) {
+            // Quiz is resumable and there is an active attempt, so we should
+            // allow them to finish it as it won't be creating a new attempt. This
+            // is the blocker, so we do nothing here. The resume handles in the
+            // take function.
+          }
+          elseif (!$quiz_session->isTakingQuiz($entity)) {
+            // If result is in session, don't check the attempt limit. @todo would
+            // be to split up "take" into something like "start" and "continue" an
+            // attempt.
+            $hooks['attempt_limit'] = [
+              'success' => FALSE,
+              'message' => (string) t('You have already taken this @quiz @really. You may not take it again.', [
+                '@quiz' => QuizUtil::getQuizName(),
+                '@really' => $taken_times,
+              ]),
+            ];
+          }
+        }
+        // If the user has taken the quiz more than once, see if we should report
+        // this.
+        elseif ($entity->show_attempt_stats->value) {
+          $hooks['attempt_limit'] = [
+            'success' => TRUE,
+            'message' => (string) t("You can only take this @quiz @allowed. You have taken it @really.", [
+              '@quiz' => QuizUtil::getQuizName(),
+              '@allowed' => $allowed_times,
+              '@really' => $taken_times,
+            ]),
+            'weight' => -10,
+          ];
+        }
+      }
+    }
+
+    // Check to see if the user is registered, and user alredy passed this quiz.
+    if ($entity->show_passed->value && $account->id() && $entity->isPassed($account)) {
+      $hooks['already_passed'] = [
+        'success' => TRUE,
+        'message' => (string) t('You have already passed this @quiz.', ['@quiz' => QuizUtil::getQuizName()]),
+        'weight' => 10,
+      ];
+    }
+
+    if (!empty($hooks)) {
+      foreach ($hooks as $hook) {
+        if (!$hook['success']) {
+          return AccessResultForbidden::forbidden($hook['message'], ['@quiz' => QuizUtil::getQuizName()]);
+        }
+      }
+    }
+
+    if (!empty($hooks)) {
+      foreach ($hooks as $hook) {
+        if ($hook['success']) {
+          if (Drupal::routeMatch()->getRouteName() == 'entity.quiz.canonical') {
+            // Only display if we are viewing the quiz.
+            Drupal::messenger()->addWarning($hook['message']);
+          }
+          return [AccessResultAllowed::allowed($hook['message'], ['@quiz' => QuizUtil::getQuizName()])];
+        }
+      }
+    }
+
+    // Check permission and node access.
+    if (!Drupal::currentUser()->hasPermission('access quiz') || !$entity->access('view')) {
+      return [AccessResultForbidden::forbidden((string) t('You are not allowed to take this @quiz.', ['@quiz' => QuizUtil::getQuizName()]))];
+    }
+  }
+}
+
+/**
+ * Retrieve question type plugins.
+ *
+ * @return array
+ *   Array of question types.
+ */
+function quiz_get_question_types() {
+  $pluginManager = Drupal::service('plugin.manager.quiz.question');
+  $plugins = $pluginManager->getDefinitions();
+  if (empty($plugins)) {
+    Drupal::messenger()->addWarning(t('You need to install and enable at least one question type to use Quiz.'));
+  }
+  return $plugins;
+}
+
+/**
+ * Get a list of all available quizzes.
+ *
+ * @param $uid
+ *   An optional user ID. If supplied, only quizzes created by that user will be
+ *   returned.
+ *
+ * @return array
+ *   A list of quizzes.
+ * @deprecated
+ *
+ */
+function _quiz_get_quizzes($uid = 0) {
+  $results = [];
+  $query = Drupal::database()->select('node', 'n')
+    ->fields('n', ['nid', 'vid', 'title', 'uid', 'created'])
+    ->fields('u', ['name']);
+  $query->leftJoin('users', 'u', 'u.uid = n.uid');
+  $query->condition('n.type', 'quiz');
+  if ($uid != 0) {
+    $query->condition('n.uid', $uid);
+  }
+  $query->orderBy('n.nid');
+  $quizzes = $query->execute();
+  foreach ($quizzes as $quiz) {
+    $results[$quiz->nid] = (array) $quiz;
+  }
+  return $results;
+}
+
+/**
+ * Format a number of seconds to a hh:mm:ss format.
+ *
+ * @param $time_in_sec
+ *   Integers time in seconds.
+ *
+ * @return string
+ *   String time in min : sec format.
+ */
+function _quiz_format_duration($time_in_sec) {
+  $hours = intval($time_in_sec / 3600);
+  $min = intval(($time_in_sec - $hours * 3600) / 60);
+  $sec = $time_in_sec % 60;
+  if (strlen($min) == 1) {
+    $min = '0' . $min;
+  }
+  if (strlen($sec) == 1) {
+    $sec = '0' . $sec;
+  }
+  return "$hours:$min:$sec";
+}
+
+/**
+ * Get the feedback options for Quizzes.
+ */
+function quiz_get_feedback_options() {
+  $feedback_options = Drupal::moduleHandler()
+    ->invokeAll('quiz_feedback_options');
+
+  $view_modes = Drupal::service('entity_display.repository')
+    ->getViewModes('quiz_question');
+  $feedback_options["quiz_question_view_full"] = t('Question') . ': ' . 'Full';
+  foreach ($view_modes as $view_mode => $info) {
+    $feedback_options["quiz_question_view_" . $view_mode] = t('Question') . ': ' . $info['label'];
+  }
+
+  $feedback_options += [
+    'attempt' => t('Attempt'),
+    'choice' => t('Choices'),
+    'correct' => t('Whether correct'),
+    'score' => t('Score'),
+    'answer_feedback' => t('Answer feedback'),
+    'question_feedback' => t('Question feedback'),
+    'solution' => t('Correct answer'),
+    'quiz_feedback' => t('@quiz feedback', ['@quiz' => QuizUtil::getQuizName()]),
+  ];
+
+  Drupal::moduleHandler()->alter('quiz_feedback_options', $feedback_options);
+
+  return $feedback_options;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Adds a checkbox for controlling field edit access to fields added to
+ * quizzes.
+ */
+function quiz_form_field_config_edit_form_alter(&$form, FormStateInterface $form_state) {
+  $field = $form_state->getFormObject()->getEntity();
+  if ($field->getTargetEntityTypeId() != 'quiz_result') {
+    return;
+  }
+
+  $form['third_party_settings']['quiz']['show_field'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Show this field on @quiz start.', ['@quiz' => QuizUtil::getQuizName()]),
+    '#default_value' => $field->getThirdPartySetting('quiz', 'show_field', TRUE),
+    '#description' => t('If checked, this field will be presented when starting a quiz.'),
+  ];
+}
+
+/**
+ * Implements hook_field_access().
+ *
+ * Don't show the user fields that weren't marked as quiz result fields.
+ */
+function quiz_entity_field_access($operation, FieldDefinitionInterface $field_definition, AccountInterface $account, FieldItemListInterface $items = NULL) {
+  if ($field_definition->getTargetEntityTypeId() == 'quiz_result') {
+    if (is_a($field_definition, FieldConfig::class)) {
+      /* @var $field_definition FieldConfig */
+      if (!$field_definition->getThirdPartySetting('quiz', 'show_field')) {
+        return AccessResult::forbidden('quiz_show_field');
+      }
+    }
+  }
+
+  return AccessResult::neutral();
+}
+
+/**
+ * Implements hook_page_attachments().
+ *
+ * Add Quiz CSS to all pages.
+ */
+function quiz_page_attachments(&$page) {
+  $page['#attached']['library'][] = 'quiz/styles';
+}
+
+/**
+ * Implements hook_query_TAG_alter().
+ *
+ * Add randomization to the categorized question build generated by
+ * entityQuery().
+ */
+function quiz_query_quiz_random_alter(AlterableInterface $query) {
+  $query->orderRandom();
+}
+
+/**
+ * Help us with special pagination.
+ *
+ * Why not the Drupal theme_pager()?
+ *
+ * It uses query strings. We have access on each menu argument (quiz question
+ * number) so we unfortunately cannot use it.
+ */
+function _quiz_pagination_helper($total, $perpage = NULL, $current = NULL, $siblings = NULL) {
+  $result = [];
+
+  if (isset($total, $perpage) === TRUE) {
+    $result = range(1, ceil($total / $perpage));
+
+    if (isset($current, $siblings) === TRUE) {
+      if (($siblings = floor($siblings / 2) * 2 + 1) >= 1) {
+        $result = array_slice($result, max(0, min(count($result) - $siblings, intval($current) - ceil($siblings / 2))), $siblings);
+      }
+    }
+  }
+
+  return $result;
+}
+
+/**
+ * Implements hook_views_data_alter().
+ *
+ * Add the wildcard Quiz result answer fields to Views.
+ */
+function quiz_views_data_alter(&$data) {
+  $data['quiz_result']['quiz_result_answers'] = [
+    'title' => 'All answers',
+    'help' => 'Display all answers for a Quiz result in separate columns.',
+    'field' => [
+      'id' => 'quiz_result_answers',
+    ],
+  ];
+  $data['quiz_result']['quiz_result_answer'] = [
+    'title' => 'Single answers',
+    'help' => 'Display an answer for a specific question in a Quiz result.',
+    'field' => [
+      'id' => 'quiz_result_answer',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_views_pre_view().
+ *
+ * Replace the static field with dynamic fields.
+ *
+ * @todo this only works on a single quiz, with the first argument being a quiz
+ * ID (e.g. quiz/1/results). Should be expanded to make argument configurable.
+ */
+function quiz_views_pre_view(ViewExecutable $view, $display_id, array &$args) {
+  $fields = $view->getHandlers('field');
+
+  foreach ($fields as $field_name => $field) {
+    if ($field['id'] == 'quiz_result_answers') {
+      $quiz = Drupal::service('entity_type.manager')
+        ->getStorage('quiz')
+        ->load($args[0]);
+      $i = 0;
+      foreach ($quiz->getQuestions() as $quizQuestionRelationship) {
+        $quizQuestion = $quizQuestionRelationship->getQuestion();
+        if ($quizQuestion->isGraded()) {
+          $i++;
+          $newfield = [];
+          $newfield['id'] = 'quiz_result_answer';
+          $newfield['field'] = 'quiz_result_answer';
+          $newfield['table'] = 'quiz_result';
+          $newfield['alter'] = [];
+          $newfield['label'] = t('@num. @question', [
+            '@num' => $i,
+            '@question' => $quizQuestion->get('title')->value,
+          ]);
+          $newfield['qqid'] = $quizQuestion->id();
+          $newfield['entity_type'] = 'quiz_result';
+          $newfield['plugin_id'] = 'quiz_result_answer';
+          $view->setHandler($view->current_display, 'field', 'answer_' . $quizQuestion->id(), $newfield);
+        }
+      }
+      $fields = $view->getHandlers('field');
+      // Remove placeholder field.
+      $view->setHandlerOption($view->current_display, 'field', $field_name, 'exclude', TRUE);
+    }
+  }
+}
+
+/**
+ * Prepares variables for quiz templates.
+ *
+ * Default template: quiz.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - elements: An associative array containing rendered fields.
+ *   - attributes: HTML attributes for the containing element.
+ */
+function template_preprocess_quiz(array &$variables) {
+  /** @var Quiz $quiz */
+  $quiz = $variables['elements']['#quiz'];
+
+  $variables['quiz'] = $quiz;
+  // Helpful $content variable for templates.
+  $variables['content'] = [];
+  foreach (Element::children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+}
+
+/**
+ * Prepares variables for quiz-question templates.
+ *
+ * Default template: quiz-question.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - elements: An associative array containing rendered fields.
+ *   - attributes: HTML attributes for the containing element.
+ */
+function template_preprocess_quiz_question(array &$variables) {
+  /** @var \Drupal\quiz\Entity\QuizResult $quiz_question */
+  $quiz_question = $variables['elements']['#quiz_question'];
+
+  $variables['quiz_question'] = $quiz_question;
+  // Helpful $content variable for templates.
+  $variables['content'] = [];
+  foreach (Element::children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+}
+
+
+/**
+ * Prepares variables for quiz-result templates.
+ *
+ * Default template: quiz-result.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - elements: An associative array containing rendered fields.
+ *   - attributes: HTML attributes for the containing element.
+ */
+function template_preprocess_quiz_result(array &$variables) {
+  /** @var \Drupal\quiz\Entity\QuizResult $quiz_result */
+  $quiz_result = $variables['elements']['#quiz_result'];
+
+  $variables['quiz_result'] = $quiz_result;
+  // Helpful $content variable for templates.
+  $variables['content'] = [];
+  foreach (Element::children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+}
+
+/**
+ * Implements hook_entity_bundle_info_alter().
+ *
+ * Map question and result classes to bundles.
+ */
+function quiz_entity_bundle_info_alter(array &$bundles): void {
+  /* @var $pluginManager \Drupal\quiz\Plugin\QuizQuestionPluginManager */
+  $pluginManager = Drupal::service('plugin.manager.quiz.question');
+  $plugins = $pluginManager->getDefinitions();
+  foreach ($plugins as $key => $plugin) {
+    if (isset($bundles['quiz_question'][$key])) {
+      $bundles['quiz_question'][$key]['class'] = $plugin['class'];
+      $bundles['quiz_result_answer'][$key]['class'] = $plugin['handlers']['response'];
+    }
+  }
+}

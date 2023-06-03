@@ -1,0 +1,8 @@
+# https://help.github.com/en/articles/configuring-git-to-handle-line-endings
+
+# all files should have the lf line endings since they are intended to be ran in a linux environment (e.g. the containers)
+* text eol=lf
+
+# Denote all files that are truly binary and should not be modified.
+*.png binary
+*.jpg binary

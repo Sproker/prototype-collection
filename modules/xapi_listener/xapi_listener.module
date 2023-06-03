@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * @file
+ * Contains xapi_listener.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
+use Drupal\Core\Link;
+
+/**
+ * Implements hook_page_attachments().
+ */
+function xapi_listener_page_attachments(array &$attachments) {
+  $attachments['#attached']['library'][] = 'xapi_listener/behaviour';
+  $attachments['#attached']['drupalSettings']['xAPIListener'] = [
+    'endpointUrl' => Url::fromRoute('xapi_listener.listener_controller_xapi')->toString(),
+  ];
+}

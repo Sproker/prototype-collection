@@ -1,0 +1,14 @@
+name: 'H5P Analytics'
+type: module
+description: 'H5P xAPI LRS integration for Learning Locker'
+core: 8.x
+core_version_requirement: ^8 || ^9
+package: 'H5P'
+dependencies:
+  - h5p:h5p
+configure: h5p_analytics.module_configuration_form
+
+# Information added by Drupal.org packaging script on 2023-01-24
+version: '8.x-1.0-rc2+8-dev'
+project: 'h5p_analytics'
+datestamp: 1674562267

@@ -1,0 +1,12 @@
+name: 'H5P Analytics JoubelTip extension'
+type: module
+description: 'Extends the JoubelTip functionality to send a statement when one is opened.'
+core_version_requirement: ^8 || ^9 || ^10
+package: 'H5P'
+dependencies:
+  - h5p_analytics:h5p_analytics
+
+# Information added by Drupal.org packaging script on 2023-03-15
+version: '8.x-1.0-rc6'
+project: 'h5p_analytics'
+datestamp: 1678875929

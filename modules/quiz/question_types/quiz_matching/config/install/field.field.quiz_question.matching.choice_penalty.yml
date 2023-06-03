@@ -1,0 +1,26 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.quiz_question.choice_penalty
+    - quiz.question.type.matching
+  enforced:
+    module:
+      - quiz_matching
+id: quiz_question.matching.choice_penalty
+field_name: choice_penalty
+entity_type: quiz_question
+bundle: matching
+label: 'Penalty for guessing'
+description: 'Subtract 1 point from the users score for each incorrect match. Scores cannot go below 0.'
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'Yes'
+  off_label: 'No'
+field_type: boolean
+

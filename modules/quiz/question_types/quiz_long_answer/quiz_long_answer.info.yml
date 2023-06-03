@@ -1,0 +1,12 @@
+name: Quiz - Long answer
+type: module
+package: Quiz question
+description: This provides long answer (essay, multi-paragraph) question types for use by the Quiz module.
+dependencies:
+  - quiz:quiz
+core_version_requirement: ^9.3
+
+# Information added by Drupal.org packaging script on 2022-06-21
+version: '6.0.0-alpha7'
+project: 'quiz'
+datestamp: 1655832755

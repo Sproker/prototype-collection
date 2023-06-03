@@ -1,0 +1,27 @@
+{#
+/**
+ * @file
+ * Default theme implementation to display a quiz result summary.
+ *
+ * Available variables:
+ * - summary_passfail: The result text for a pass/fail quiz.
+ * - summary_range: The result text for a range quiz.
+ * - attributes: HTML attributes for the containing element.
+ *
+ * @see template_preprocess_quiz_result_score()
+ *
+ * @ingroup themeable
+ */
+#}
+<div{{ attributes }}>
+    {% if summary_passfail %}
+        <div id="quiz-summary__passfail">
+            {{ summary_passfail }}
+        </div>
+    {% endif %}
+    {% if summary_range %}
+        <div id="quiz-summary__range">
+            {{ summary_range }}
+        </div>
+    {% endif %}
+</div>

@@ -1,0 +1,67 @@
+<?php
+
+use Drupal\Core\Entity\BundleEntityFormBase;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\quiz\Entity\QuizQuestionType;
+
+/**
+ * @file
+ * Matching question type for the Quiz module.
+ *
+ * Allows the creation of matching questions, which associate one term
+ * with another.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function matching_help($path, $args) {
+  switch ($path) {
+    case 'admin/modules#description':
+      return t('Matching question type for quiz module.');
+
+    case 'quiz/add#matching':
+    case 'admin/help#matching':
+      return t('A question type for the quiz module: allows you to create matching type questions, which connect terms with one another.');
+
+    default:
+      break;
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add matching defaults to the bundle form.
+ */
+function quiz_matching_form_quiz_question_type_edit_form_alter(array &$form, FormStateInterface $form_state) {
+  if ($form_state->getFormObject() instanceof BundleEntityFormBase) {
+    if ($form_state->getFormObject()->getEntity()->id() == 'matching') {
+      $config = Drupal::config('quiz_matching.settings');
+      $form['shuffle'] = [
+        '#type' => 'checkbox',
+        '#title' => t('Shuffle matching questions'),
+        '#default_value' => $config->get('shuffle'),
+        '#description' => t('If checked matching questions will be shuffled'),
+      ];
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ *
+ * Set configuration.
+ */
+function quiz_matching_entity_update(EntityInterface $entity) {
+  if (!$entity instanceof QuizQuestionType) {
+    return;
+  }
+
+  if ($entity->id() == 'matching') {
+    $config = Drupal::configFactory()->getEditable('quiz_matching.settings');
+    $config->set('shuffle', $entity->shuffle);
+    $config->save();
+  }
+}

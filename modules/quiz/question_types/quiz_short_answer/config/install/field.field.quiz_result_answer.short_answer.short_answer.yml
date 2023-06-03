@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.quiz_result_answer.short_answer
+    - quiz.result.answer.type.short_answer
+  enforced:
+    module:
+      - quiz_short_answer
+id: quiz_result_answer.short_answer.short_answer
+field_name: short_answer
+entity_type: quiz_result_answer
+bundle: short_answer
+label: 'Short answer'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
+

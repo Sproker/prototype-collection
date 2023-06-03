@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - quiz
+id: quiz_question_term_pool
+label: 'Quiz question term pool'
+icon_uuid: null
+icon_default: null
+description: 'Holds a pool configuration for Quizzes with questions from random categories.'
+behavior_plugins: {  }
+

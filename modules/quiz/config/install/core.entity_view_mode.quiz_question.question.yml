@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - quiz
+  module:
+    - quiz
+id: quiz_question.question
+label: Question
+targetEntityType: quiz_question
+cache: true
+

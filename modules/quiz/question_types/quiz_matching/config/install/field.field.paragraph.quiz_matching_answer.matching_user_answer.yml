@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.matching_user_answer
+    - paragraphs.paragraphs_type.quiz_matching_answer
+id: paragraph.quiz_matching_answer.matching_user_answer
+field_name: matching_user_answer
+entity_type: paragraph
+bundle: quiz_matching_answer
+label: matching_user_answer
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer
+

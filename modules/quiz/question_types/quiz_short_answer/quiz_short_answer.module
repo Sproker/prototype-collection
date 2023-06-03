@@ -1,0 +1,74 @@
+<?php
+
+use Drupal\Core\Entity\BundleEntityFormBase;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\quiz\Entity\QuizQuestionType;
+
+/**
+ * @file
+ * Short_answer question type for the Quiz module.
+ *
+ * Short answer is structurally similar to long answer. However, the module
+ * mechanism makes it very difficult for these two modules (either one of
+ * which may be disabled) to effectively share code.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function short_answer_help($path, $args) {
+  if ($path == 'admin/help#short_answer') {
+    return t('This module provides a short answer question type for Quiz.');
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function short_answer_permission() {
+  return [
+    'use regex for short answer' => [
+      'title' => t('use regex for short answer'),
+      'description' => t('Use PHP "regular expressions" the advanced option for automated response evaluation.'),
+      'restrict access' => TRUE,
+    ],
+  ];
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add multiple choice defaults to the bundle form.
+ */
+function quiz_short_answer_form_quiz_question_type_edit_form_alter(array &$form, FormStateInterface $form_state) {
+  if ($form_state->getFormObject() instanceof BundleEntityFormBase) {
+    if ($form_state->getFormObject()->getEntity()->id() == 'short_answer') {
+      $config = Drupal::config('quiz_multichoice.settings');
+      $form['default_max_score'] = [
+        '#type' => 'textfield',
+        '#title' => t('Default max score'),
+        '#description' => t('Choose the default maximum score for a short answer question.'),
+        '#default_value' => $config->get('default_max_score'),
+      ];
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ *
+ * Set configuration.
+ */
+function quiz_short_answer_entity_update(EntityInterface $entity) {
+  if (!$entity instanceof QuizQuestionType) {
+    return;
+  }
+
+  if ($entity->id() == 'short_answer') {
+    $config = Drupal::configFactory()
+      ->getEditable('quiz_short_answer.settings');
+    $config->set('scoring', $entity->scoring);
+    $config->save();
+  }
+}

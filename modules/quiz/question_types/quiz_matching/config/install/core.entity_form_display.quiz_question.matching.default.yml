@@ -1,0 +1,64 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.quiz_question.matching.choice_penalty
+    - field.field.quiz_question.matching.quiz_matching
+    - quiz.question.type.matching
+  enforced:
+    module:
+      - quiz_matching
+  module:
+    - paragraphs
+    - text
+id: quiz_question.matching.default
+targetEntityType: quiz_question
+bundle: matching
+mode: default
+content:
+  body:
+    type: text_textarea
+    region: content
+    weight: 1
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  choice_penalty:
+    type: boolean_checkbox
+    weight: 3
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  feedback:
+    type: text_textarea
+    weight: 4
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  quiz_matching:
+    type: entity_reference_paragraphs
+    weight: 2
+    region: content
+    settings:
+      title: Paragraph
+      title_plural: Paragraphs
+      edit_mode: open
+      add_mode: dropdown
+      form_display_mode: default
+      default_paragraph_type: ''
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  matches: true
+

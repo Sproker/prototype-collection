@@ -1,0 +1,99 @@
+<?php
+
+/**
+ * @file
+ * Contains xapi_listener.install.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function xapi_listener_schema() {
+  $schema['xapi_listener_statements'] = [
+    'description' => 'Stores H5P results.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'The primary identifier.',
+      ],
+      'qid' => [
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+        'description' => 'The ID of the Quiz.',
+        'unsigned' => TRUE,
+      ],
+      'qtitle' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The title of the quiz.',
+      ],
+      'qqid' => [
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+        'description' => 'The ID of Quiz question.',
+        'unsigned' => TRUE,
+      ],
+      'uid' => [
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+        'description' => 'The ID of the user.',
+        'unsigned' => TRUE,
+      ],
+      'score_raw' => [
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+        'description' => 'Raw score achieved by the user.',
+        'unsigned' => TRUE,
+      ],
+      'score_max' => [
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+        'description' => 'Maximum score that could be achieved by the user.',
+        'unsigned' => TRUE,
+      ],
+      'duration' => [
+        'type' => 'float',
+        'not null' => TRUE,
+        'description' => 'The time it took the user to complete the question.',
+      ],
+      'attempts' => [
+        'type' => 'int',
+        'length' => 10,
+        'not null' => TRUE,
+        'description' => 'The number of attempts for the question.',
+        'unsigned' => TRUE,
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Creation timestamp.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'qid' => ['qid'],
+      'qqid' => ['qid'],
+      'uid' => ['uid'],
+      'created_timestamp' => ['created'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function xapi_listener_uninstall() {
+  \Drupal::configFactory()->getEditable('xapi_listener.settings')->delete();
+}

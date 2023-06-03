@@ -1,0 +1,12 @@
+name: Quiz - Multichoice
+type: module
+description: Multiple choice question type for quiz.
+core_version_requirement: ^9.3
+dependencies:
+  - quiz:quiz
+  - field_group:field_group
+
+# Information added by Drupal.org packaging script on 2022-06-21
+version: '6.0.0-alpha7'
+project: 'quiz'
+datestamp: 1655832755

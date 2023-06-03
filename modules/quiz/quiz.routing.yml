@@ -1,0 +1,130 @@
+# Take quiz
+entity.quiz.take:
+  path: 'quiz/{quiz}/take'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::take'
+    _title: 'Take quiz'
+  requirements:
+    _entity_access: 'quiz.view'
+  options:
+    no_cache: 'TRUE'
+    parameters:
+      quiz:
+        type: 'entity:quiz'
+
+# Take question
+quiz.question.take:
+  path: 'quiz/{quiz}/take/{question_number}'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizQuestionController::take'
+    _title_callback: '\Drupal\quiz\Controller\QuizQuestionController::getTitle'
+  requirements:
+    _custom_access: '\Drupal\quiz\Controller\QuizQuestionController::checkAccess'
+  options:
+    parameters:
+      quiz:
+        type: 'entity:quiz'
+      question_number:
+        # This is the question number.
+        type: 'question_number'
+
+
+# Question feedback
+quiz.question.feedback:
+  path: 'quiz/{quiz}/take/{question_number}/feedback'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizQuestionController::feedback'
+    _title: 'Quiz feedback'
+  requirements:
+    _custom_access: '\Drupal\quiz\Controller\QuizQuestionController::checkFeedbackAccess'
+  options:
+    parameters:
+      quiz:
+        type: 'entity:quiz'
+      question_number:
+        # This is the question number.
+        type: 'question_number'
+
+# Question management tab
+quiz.questions:
+  path: 'quiz/{quiz}/questions'
+  defaults:
+    _controller: '\Drupal\quiz\Controller\QuizController::manageQuestions'
+    _title: 'Manage questions'
+  requirements:
+    _entity_access: 'quiz.update'
+  options:
+    _admin_route: true
+    parameters:
+      quiz:
+        type: 'entity:quiz'
+
+# Admin page route
+quiz.admin:
+  path: '/admin/quiz'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::overview'
+    link_id: 'quiz.admin'
+    _title: 'Quiz'
+  requirements:
+    _permission: 'administer quiz'
+
+# Admin block routes
+quiz.admin.config:
+  path: '/admin/quiz/config'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Configuration'
+  requirements:
+    _permission: 'administer quiz'
+quiz.admin.quizzes:
+  path: '/admin/quiz/quizzes'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Quizzes'
+  requirements:
+    _permission: 'administer quiz'
+quiz.admin.questions:
+  path: '/admin/quiz/questions'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Questions'
+  requirements:
+    _permission: 'administer quiz'
+quiz.admin.reports:
+  path: '/admin/quiz/reports'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Reports'
+  requirements:
+    _permission: 'administer quiz'
+quiz.admin.structure:
+  path: '/admin/quiz/config/structure'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Questions'
+  requirements:
+    _permission: 'administer quiz'
+
+# Quiz settings
+quiz.admin.settings:
+  path: '/admin/quiz/config/quiz'
+  defaults:
+    _form: '\Drupal\quiz\Form\QuizAdminForm'
+    _title: 'Quiz'
+  requirements:
+    _permission: 'administer quiz'
+
+# Quiz feedback type conditions (Rules UI)
+entity.quiz_feedback_type.conditions:
+  path: 'admin/quiz/feedback/type/{quiz_feedback_type}/conditions'
+  defaults:
+    _form: '\Drupal\quiz\Form\QuizFeedbackConditionsForm'
+    _title: 'Feedback conditions'
+  requirements:
+    _permission: 'administer quiz'
+  options:
+    _rules_ui: quiz_feedback.rules_ui_conditions
+    parameters:
+      quiz_feedback_type:
+        type: 'entity:quiz_feedback_type'

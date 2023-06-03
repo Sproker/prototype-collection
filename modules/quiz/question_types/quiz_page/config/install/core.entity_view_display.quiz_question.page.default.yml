@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - quiz_page
+  config:
+    - quiz.question.type.page
+  module:
+    - text
+id: quiz_question.page.default
+targetEntityType: quiz_question
+bundle: page
+mode: default
+content:
+  body:
+    type: text_default
+    weight: 0
+    region: content
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+hidden: {  }

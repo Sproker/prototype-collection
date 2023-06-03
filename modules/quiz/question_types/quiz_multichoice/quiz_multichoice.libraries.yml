@@ -1,0 +1,5 @@
+helper:
+  js:
+    js/helper.js: {}
+  dependencies:
+    - core/jquery

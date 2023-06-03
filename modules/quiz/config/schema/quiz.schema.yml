@@ -1,0 +1,146 @@
+quiz.type.*:
+  type: config_entity
+  label: 'Quiz type'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+
+quiz.result.answer.type.*:
+  type: config_entity
+  label: 'Quiz answer type'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+
+quiz.question.type.*:
+  type: config_entity
+  label: 'Quiz answer type'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+
+quiz.result.type.*:
+  type: config_entity
+  label: 'Quiz result type'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+
+quiz.feedback.type.*:
+  type: config_entity
+  label: 'Quiz feedback type'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+    description:
+      type: text
+      label: 'Description'
+    component:
+      type: rules_component
+
+field.field.*.*.*.third_party.quiz:
+  type: mapping
+  label: 'Show before quiz'
+  mapping:
+    show_field:
+      type: boolean
+      label: 'Make this field appear before a quiz.'
+
+quiz.settings:
+  type: config_object
+  label: 'Quiz settings'
+  mapping:
+    revisioning:
+      type: boolean
+      label: 'Revisioning'
+    durod:
+      type: boolean
+      label: Delete results on user delete
+    default_close:
+      type: integer
+      label: Days after today to default close date
+    use_passfail:
+      type: boolean
+      label: Use pass/fail
+    remove_partial_quiz_record:
+      type: integer
+      label: Remove partial attempts after X days
+    remove_invalid_quiz_record:
+      type: integer
+      label: Remove invalid attempts after X days
+    autotitle_length:
+      type: integer
+      label: Default autotitle length
+    pager_start:
+      type: integer
+      label: Default pager start length
+    pager_siblings:
+      type: integer
+      label: Default pager start siblings
+    time_limit_buffer:
+      type: integer
+      label: Seconds buffer for end of quiz
+    has_timer:
+      type: boolean
+      label: Enable timer
+    admin_review_options_end:
+      type: ignore
+    admin_review_options_question:
+      type: ignore
+
+quiz.defaults:
+  type: config_object
+  mapping:
+    backwards_navigation:
+      type: boolean
+      label:
+    repeat_until_correct:
+      type: boolean
+      label:
+    show_attempt_stats:
+      type: boolean
+      label:
+    allow_skipping:
+      type: boolean
+      label:
+    allow_resume:
+      type: boolean
+      label:
+    allow_jumping:
+      type: boolean
+      label:
+    allow_change:
+      type: boolean
+      label:
+    allow_change_blank:
+      type: boolean
+      label:
+    show_passed:
+      type: boolean
+      label:
+    mark_doubtful:
+      type: boolean
+      label:
+    takes:
+      type: integer
+      label: Takes

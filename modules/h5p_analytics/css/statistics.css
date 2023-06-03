@@ -1,0 +1,9 @@
+.graph.bb {
+  height: 300px;
+}
+
+.graph.bb .bb-tooltip td,
+.graph.bb .bb-tooltip tr > th {
+  /* Override possible default value from Drupal theme */
+  height: 1rem;
+}

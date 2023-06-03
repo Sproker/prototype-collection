@@ -1,0 +1,33 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.quiz_matching_answer.matching_user_answer
+    - field.field.paragraph.quiz_matching_answer.matching_user_question
+    - paragraphs.paragraphs_type.quiz_matching_answer
+  enforced:
+    module:
+      - quiz_matching
+id: paragraph.quiz_matching_answer.default
+targetEntityType: paragraph
+bundle: quiz_matching_answer
+mode: default
+content:
+  matching_user_answer:
+    weight: 0
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+    type: number
+    region: content
+  matching_user_question:
+    weight: 1
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+    type: number
+    region: content
+hidden:
+  created: true
+  status: true
+

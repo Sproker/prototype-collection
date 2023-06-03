@@ -1,0 +1,9 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - quiz
+id: quiz_result
+label: 'Quiz result'
+

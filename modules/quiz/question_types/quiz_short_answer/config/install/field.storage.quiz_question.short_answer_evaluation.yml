@@ -1,0 +1,36 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - quiz_short_answer
+  module:
+    - options
+    - quiz
+id: quiz_question.short_answer_evaluation
+field_name: short_answer_evaluation
+entity_type: quiz_question
+type: list_integer
+settings:
+  allowed_values:
+    -
+      value: 0
+      label: 'Automatic, case sensitive'
+    -
+      value: 1
+      label: 'Automatic, case insensitive'
+    -
+      value: 2
+      label: 'Match against a regular expression'
+    -
+      value: 3
+      label: Manual
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
+

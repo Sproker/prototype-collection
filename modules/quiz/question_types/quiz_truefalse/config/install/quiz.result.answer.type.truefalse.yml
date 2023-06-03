@@ -1,0 +1,9 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - quiz_truefalse
+id: truefalse
+label: 'True/false response'
+

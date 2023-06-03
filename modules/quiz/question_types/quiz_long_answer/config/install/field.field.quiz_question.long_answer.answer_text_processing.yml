@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.quiz_question.answer_text_processing
+    - quiz.question.type.long_answer
+id: quiz_question.long_answer.answer_text_processing
+field_name: answer_text_processing
+entity_type: quiz_question
+bundle: long_answer
+label: 'Answer text processing'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'Filtered text (user selects text format)'
+  off_label: 'Plain text'
+field_type: boolean
+

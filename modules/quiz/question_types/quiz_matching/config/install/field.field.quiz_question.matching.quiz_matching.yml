@@ -1,0 +1,46 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.quiz_question.quiz_matching
+    - paragraphs.paragraphs_type.quiz_matching
+    - quiz.question.type.matching
+  enforced:
+    module:
+      - quiz_matching
+  module:
+    - entity_reference_revisions
+id: quiz_question.matching.quiz_matching
+field_name: quiz_matching
+entity_type: quiz_question
+bundle: matching
+label: 'Matching questions'
+description: 'Write your pairs in the question and answer fields. For the user the question will be fixed and the answers will be shown as alternatives in a dropdown box.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      quiz_matching: quiz_matching
+    target_bundles_drag_drop:
+      quiz_matching:
+        enabled: true
+        weight: 4
+      multichoice:
+        weight: 5
+        enabled: false
+      quiz_question_term_pool:
+        weight: 6
+        enabled: false
+      quiz_matching_answer:
+        weight: 8
+        enabled: false
+      quiz_result_feedback:
+        weight: 8
+        enabled: false
+field_type: entity_reference_revisions
+

@@ -1,0 +1,32 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.quiz_result_answer.matching.matching_user_answer
+    - quiz.result.answer.type.matching
+  enforced:
+    module:
+      - quiz_matching
+id: quiz_result_answer.matching.default
+targetEntityType: quiz_result_answer
+bundle: matching
+mode: default
+content:
+  table:
+    weight: 0
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  answer_feedback: true
+  attempt: true
+  choice: true
+  correct: true
+  matching_user_answer: true
+  question_feedback: true
+  quiz_feedback: true
+  quiz_question_view_full: true
+  quiz_question_view_question: true
+  score: true
+  solution: true
+

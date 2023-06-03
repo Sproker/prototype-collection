@@ -1,0 +1,26 @@
+# Schema for the configuration files of the H5P Analytics module.
+h5p_analytics.settings:
+  type: config_object
+  label: 'H5P Analytics settings'
+  mapping:
+    xapi_endpoint:
+      type: uri
+      label: 'xAPI Endpoint URL'
+    key:
+      type: string
+      label: 'Key'
+    secret:
+      type: string
+      label: 'Secret'
+    xapi_version:
+      type: string
+      label: 'xAPI version'
+    basic_auth:
+      type: string
+      label: 'Authorization Header'
+    batch_size:
+      type: integer
+      label: 'Batch size'
+    timeout:
+      type: float
+      label: 'HTTP request timeout'

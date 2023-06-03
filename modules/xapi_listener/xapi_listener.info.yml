@@ -1,0 +1,7 @@
+name: 'xAPI listener'
+type: module
+description: 'Listens for xAPI statements emitted by H5P and saves them to the database'
+core_version_requirement: ^8 || ^9 || ^10
+package: 'H5P'
+dependencies:
+  - h5p:h5p

@@ -1,0 +1,200 @@
+<?php
+
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\RedirectCommand;
+use Drupal\Core\Ajax\ReplaceCommand;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+use Drupal\quiz\Entity\QuizResult;
+use Drupal\quiz\Form\QuizQuestionFeedbackForm;
+
+/**
+ * @file
+ * module file for ajax_quiz quiz module
+ */
+
+/**
+ * Implements hook_help().
+ */
+function ajax_quiz_help($path, $arg) {
+  if ($path == 'admin/help#ajax_quiz') {
+    return '<p>' . t('AJAX version of quiz. Successive quiz questions will be loaded in the same page without page reload.') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function ajax_quiz_form_alter(&$form, &$form_state, $form_id) {
+  $quiz_forms = [
+    'quiz_question_answering_form',
+    'quiz_report_form',
+  ];
+
+  if (in_array($form_id, $quiz_forms) && Drupal::currentUser()->hasPermission('access ajax quiz')) {
+    // Wrap form.
+    $form['#prefix'] = '<div id="ajax-quiz-wrapper">';
+    $form['#suffix'] = '</div>';
+
+    // Build ajax array.
+    $ajax = [
+      'wrapper' => 'ajax-quiz-wrapper',
+      'method' => 'replace',
+      'callback' => 'ajax_quiz_navigate_quiz',
+    ];
+
+    // Add ajax to each submit button.
+    $nav_children = Element::children($form['navigation']);
+    foreach ($nav_children as $nav_child) {
+      if (isset($form['navigation'][$nav_child]['#type']) && $form['navigation'][$nav_child]['#type'] == 'submit') {
+        $form['navigation'][$nav_child]['#ajax'] = $ajax;
+      }
+    }
+  }
+}
+
+/**
+ * AJAX callback for quiz submission.
+ *
+ * @todo D8, we have form submissions but have to also add AJAX callbacks to
+ * update the progress and jumper.
+ */
+function ajax_quiz_navigate_quiz($form, FormStateInterface $form_state) {
+  // Array for ajax commands to return.
+  $commands = new AjaxResponse();
+
+  // Get quiz session.
+  /* @var $quiz_session \Drupal\quiz\Services\QuizSessionInterface */
+  $quiz_session = \Drupal::service('quiz.session');
+
+  /* @var $quiz_result QuizResult */
+
+  // Get the quiz result.
+  if (isset($form['#quiz_result'])) {
+    $quiz_result = $form['#quiz_result'];
+  }
+  // Is there a temp result?
+  else {
+    $quiz_result = $quiz_session->getTemporaryResult();
+  }
+
+  // Get the quiz.
+  if ($quiz_result) {
+    $quiz = $quiz_result->getQuiz();
+  }
+  else {
+    $quiz = FALSE;
+  }
+
+  // Get question number.
+  if ($quiz && $quiz_session->getCurrentQuestion($quiz) !== NULL) {
+    $question_number = $quiz_session->getCurrentQuestion($quiz);
+    // Feedback? reduce the question number.
+    // This is because the quiz is already progressed the question counter.
+    if ($form_state->get('feedback')) {
+      $question_number--;
+    }
+  }
+  else {
+    $question_number = 0;
+  }
+
+  // Have a quiz result and valid question?
+  $layout = $quiz_result->getLayout();
+  if ($quiz_result && isset($layout[$question_number])) {
+    // Figure out current question.
+    $question = $layout[$question_number];
+
+    if (!empty($question->qqr_pid)) {
+      // Find the parent.
+      foreach ($layout as $pquestion) {
+        if ($pquestion->qqr_id == $question->qqr_pid) {
+          // Load the page that the requested question belongs to.
+          $question_node = $pquestion->getQuizQuestion();
+        }
+      }
+    }
+    else {
+      // Load the question.
+      $question_node = $question->getQuizQuestion();
+    }
+
+    // Have a question node?
+    if ($question_node) {
+      // Getting feedback?
+      if ($form_state->get('feedback')) {
+        // Load the feedback form. We request the previous question's feedback.
+        // This may seem odd if the $question_node is a page, but question pages
+        // currently do not show feedback.
+        $feedback = Drupal::formBuilder()
+          ->getForm(QuizQuestionFeedbackForm::class, $quiz, $question_number);
+        $commands->addCommand(new ReplaceCommand('#ajax-quiz-wrapper', \Drupal::service('renderer')->render($feedback)));
+        return $commands;
+      }
+      else {
+        // Update build state question for form rebuilding.
+        $build_info = $form_state->getBuildInfo();
+        $build_info['args'][0] = $question_node;
+        $form_state->setBuildInfo($build_info);
+        // Mark this as the current question.
+        $quiz_result->setQuestion($question_number);
+        // Added the progress info to the view.
+        $questions = [];
+        $i = 0;
+        foreach ($quiz_result->getLayout() as $idx => $question) {
+          if (empty($question->qqr_pid)) {
+            // Question has no parent. Show it in the jumper.
+            $questions[$idx] = ++$i;
+          }
+        }
+
+        // Update progress counter.
+        $progress = [
+          '#theme' => 'quiz_progress',
+          '#total' => count($questions),
+          '#current' => $question_number,
+        ];
+
+        //        // @todo need to break this out so we can render progress/jumper without all this work
+        //        $jumper = [
+        //          '#allow_jumping' => $quiz->get('allow_jumping')->value,
+        //          '#pager' => count($questions) >= Drupal::config('quiz.settings')->get('pager_start', 100),
+        //          '#time_limit' => $quiz->get('time_limit')->value,
+        //        ];
+        $commands->addCommand(new ReplaceCommand("#quiz-progress", \Drupal::service('renderer')
+          ->render($progress)));
+
+        // Build form based on what form we are on.
+        // Report form?
+        if ($form['#form_id'] == 'quiz_report_form') {
+          // Build answer for for next question.
+          $form = drupal_get_form('quiz_question_answering_form', $question_node, $quiz_result->result_id);
+          return $form;
+        }
+        // Answering form?
+        else {
+          // Rebuild for next question.
+          $form_state->setRebuild();
+          $form = Drupal::formBuilder()
+            ->rebuildForm($form['#form_id'], $form_state, $form);
+          $form['#action'] = '/system/ajax';
+          return $form;
+        }
+
+        $commands->addCommand(new ReplaceCommand("#ajax-quiz-wrapper", \Drupal::service('renderer')->render($form)));
+      }
+    }
+  }
+  elseif ($quiz_result) {
+    // If there is a quiz result, but no current question. Completed quiz.
+    $commands->addCommand(new RedirectCommand('/quiz/' . $quiz_result->getQuiz()->id() . '/result/' . $quiz_result->id()));
+  }
+  // No result, but have a quiz?
+  else {
+    // don't know what to do redirect back to quiz.
+    $commands->addCommand(new RedirectCommand('/quiz/' . $quiz->id()));
+  }
+
+  // Return ajax commands.
+  return $commands;
+}

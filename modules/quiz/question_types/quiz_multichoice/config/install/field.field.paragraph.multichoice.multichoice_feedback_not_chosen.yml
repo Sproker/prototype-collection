@@ -1,0 +1,24 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.multichoice_feedback_not_chosen
+    - paragraphs.paragraphs_type.multichoice
+  module:
+    - text
+  enforced:
+    module:
+      - quiz_multichoice
+id: paragraph.multichoice.multichoice_feedback_not_chosen
+field_name: multichoice_feedback_not_chosen
+entity_type: paragraph
+bundle: multichoice
+label: 'Feedback if not chosen'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long
+

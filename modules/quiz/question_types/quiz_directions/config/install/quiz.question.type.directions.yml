@@ -1,0 +1,8 @@
+id: directions
+label: Directions question
+dependencies:
+  enforced:
+    module:
+      - quiz_directions
+  module:
+    - quiz_directions

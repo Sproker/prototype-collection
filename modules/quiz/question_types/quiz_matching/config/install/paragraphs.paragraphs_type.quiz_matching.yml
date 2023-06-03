@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - quiz_matching
+id: quiz_matching
+label: 'Matching question'
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }
+

@@ -1,0 +1,7 @@
+behaviour:
+  js:
+    js/behaviour.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/drupalSettings

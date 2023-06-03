@@ -1,0 +1,35 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.quiz_matching.matching_answer
+    - field.field.paragraph.quiz_matching.matching_question
+    - paragraphs.paragraphs_type.quiz_matching
+  enforced:
+    module:
+      - quiz_matching
+id: paragraph.quiz_matching.default
+targetEntityType: paragraph
+bundle: quiz_matching
+mode: default
+content:
+  matching_answer:
+    type: string_textfield
+    weight: 1
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  matching_question:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  created: true
+  status: true
+

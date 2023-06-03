@@ -1,0 +1,41 @@
+billboard-js:
+  remote: https://naver.github.io/billboard.js/
+  version: 3.7.2
+  license:
+    name: MIT
+    url: https://github.com/naver/billboard.js/blob/master/LICENSE
+    gpl-compatible: true
+  js:
+    /libraries/billboard-js/billboard.pkgd.min.js: { minified: true }
+  css:
+    theme:
+      /libraries/billboard-js/billboard.min.css: {}
+behaviour:
+  version: 1.x
+  js:
+    js/behaviour.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/drupalSettings
+statistics:
+  version: 1.x
+  js:
+    js/statistics.js: {}
+  css:
+      theme:
+          css/statistics.css: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/drupalSettings
+    - h5p_analytics/billboard-js
+request-log:
+  version: 1.x
+  js:
+    js/request-log.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/drupalSettings
+    - core/drupal.dialog

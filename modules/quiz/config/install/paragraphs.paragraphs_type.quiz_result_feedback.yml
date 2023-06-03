@@ -1,0 +1,13 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - quiz
+id: quiz_result_feedback
+label: 'Quiz result feedback'
+icon_uuid: null
+icon_default: null
+description: 'Configuration for Quiz result feedback'
+behavior_plugins: {  }
+

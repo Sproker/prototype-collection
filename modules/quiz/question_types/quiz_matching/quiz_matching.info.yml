@@ -1,0 +1,13 @@
+name: Quiz - Matching question
+package: Quiz question
+description: Provide a way to create matching type of questions.
+core_version_requirement: ^9.3
+type: module
+dependencies:
+  - paragraphs:paragraphs
+  - quiz:quiz
+
+# Information added by Drupal.org packaging script on 2022-06-21
+version: '6.0.0-alpha7'
+project: 'quiz'
+datestamp: 1655832755

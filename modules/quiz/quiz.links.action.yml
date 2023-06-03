@@ -1,0 +1,35 @@
+quiz.add:
+  route_name: entity.quiz.add_page
+  title: 'Add quiz'
+  appears_on:
+    - entity.quiz.collection
+
+quiz.type_add:
+  route_name: entity.quiz_type.add_form
+  title: 'Add quiz type'
+  appears_on:
+    - entity.quiz_type.collection
+
+quiz.question.add:
+  route_name: entity.quiz_question.add_page
+  title: 'Add quiz question'
+  appears_on:
+    - entity.quiz_question.collection
+
+quiz.result_type_add:
+  route_name: entity.quiz_result_type.add_form
+  title: 'Add quiz result type'
+  appears_on:
+    - entity.quiz_result_type.collection
+
+view.quiz_question_bank.add:
+  route_name: view.quiz_question_bank.add
+  title: Add questions from bank
+  appears_on:
+    - quiz.questions
+
+quiz.feedback.type.add:
+  route_name: entity.quiz_feedback_type.add_form
+  title: 'Add quiz feedback type'
+  appears_on:
+    - entity.quiz_feedback_type.collection

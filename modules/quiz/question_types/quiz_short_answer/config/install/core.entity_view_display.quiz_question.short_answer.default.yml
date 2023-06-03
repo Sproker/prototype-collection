@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.quiz_question.short_answer.short_answer_correct
+    - field.field.quiz_question.short_answer.short_answer_evaluation
+    - quiz.question.type.short_answer
+  enforced:
+    module:
+      - quiz_short_answer
+  module:
+    - text
+id: quiz_question.short_answer.default
+targetEntityType: quiz_question
+bundle: short_answer
+mode: default
+content:
+  body:
+    type: text_default
+    weight: 0
+    region: content
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  short_answer_correct: true
+  short_answer_evaluation: true
+

@@ -1,0 +1,7 @@
+quiz_feedback.rules_ui_conditions:
+  label: 'Conditions embedded in Rules-test-UI-embed module settings'
+  base_route: entity.quiz_feedback_type.conditions
+  settings:
+    #config_name: quiz.feedback.settings
+    config_key: component
+    config_parameter: quiz_feedback_type

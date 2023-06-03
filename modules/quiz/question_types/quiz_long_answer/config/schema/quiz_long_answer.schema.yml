@@ -1,0 +1,7 @@
+quiz_long_answer.settings:
+  type: config_object
+  label: 'Long answer settings'
+  mapping:
+    default_max_score:
+      type: integer
+      label: 'Default max score'

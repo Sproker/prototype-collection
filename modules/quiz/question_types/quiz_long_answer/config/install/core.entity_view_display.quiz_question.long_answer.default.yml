@@ -1,0 +1,28 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.quiz_question.long_answer.answer_text_processing
+    - field.field.quiz_question.long_answer.long_answer_rubric
+    - quiz.question.type.long_answer
+  enforced:
+    module:
+      - quiz_long_answer
+  module:
+    - text
+id: quiz_question.long_answer.default
+targetEntityType: quiz_question
+bundle: long_answer
+mode: default
+content:
+  body:
+    type: text_default
+    weight: 0
+    region: content
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  answer_text_processing: true
+  long_answer_rubric: true
+

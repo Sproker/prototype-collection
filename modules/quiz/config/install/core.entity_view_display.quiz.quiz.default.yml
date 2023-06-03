@@ -1,0 +1,37 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - quiz.type.quiz
+  enforced:
+    module:
+      - quiz
+  module:
+    - text
+id: quiz.quiz.default
+targetEntityType: quiz
+bundle: quiz
+mode: default
+content:
+  body:
+    type: text_default
+    weight: 0
+    region: content
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+  stats:
+    weight: 1
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  take:
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  quiz_date: true
+  takes: true
+  time_limit: true
+

@@ -1,0 +1,8 @@
+id: page
+label: Quiz page
+dependencies:
+  enforced:
+    module:
+      - quiz_page
+  module:
+    - quiz_page

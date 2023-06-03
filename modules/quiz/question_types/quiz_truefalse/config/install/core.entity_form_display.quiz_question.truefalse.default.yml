@@ -1,0 +1,54 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.quiz_question.truefalse.truefalse_correct
+    - quiz.question.type.truefalse
+  enforced:
+    module:
+      - quiz_truefalse
+  module:
+    - text
+id: quiz_question.truefalse.default
+targetEntityType: quiz_question
+bundle: truefalse
+mode: default
+content:
+  body:
+    type: text_textarea
+    region: content
+    weight: 1
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  correct_answer:
+    type: options_buttons
+    weight: 1
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  feedback:
+    type: text_textarea
+    region: content
+    weight: 26
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    region: content
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  truefalse_correct:
+    type: options_buttons
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden: {  }
+

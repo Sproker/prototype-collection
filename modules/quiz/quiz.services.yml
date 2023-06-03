@@ -1,0 +1,16 @@
+services:
+  plugin.manager.quiz.question:
+    class: Drupal\quiz\Plugin\QuizQuestionPluginManager
+    parent: default_plugin_manager
+  quiz_event_subscriber:
+    class: '\Drupal\quiz\EventSubscriber\QuizEventSubscriber'
+    tags:
+      - { name: 'event_subscriber' }
+  quiz.session:
+    class: Drupal\quiz\Services\QuizSession
+    arguments: ['@session']
+  quiz.quiz_route_context:
+    class: Drupal\quiz\ContextProvider\QuizRouteContext
+    arguments: [ '@current_route_match', '@entity_type.manager' ]
+    tags:
+      - { name: 'context_provider' }

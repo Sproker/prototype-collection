@@ -1,0 +1,12 @@
+name: Quiz - Short answer
+package: Quiz question
+description: Short answer question type for Quiz.
+core_version_requirement: ^9.3
+type: module
+dependencies:
+  - quiz:quiz
+
+# Information added by Drupal.org packaging script on 2022-06-21
+version: '6.0.0-alpha7'
+project: 'quiz'
+datestamp: 1655832755

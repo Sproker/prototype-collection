@@ -1,0 +1,8 @@
+xapi_listener.listener_controller_xapi:
+  path: '/xapi_listener/xapi'
+  defaults:
+    _controller: '\Drupal\xapi_listener\Controller\ListenerController::xapi'
+    _title: 'xAPI statement endpoint'
+  methods: [POST]
+  requirements:
+    _access: 'TRUE'

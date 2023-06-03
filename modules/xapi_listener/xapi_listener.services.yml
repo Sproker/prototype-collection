@@ -1,0 +1,4 @@
+services:
+  xapi_listener.service:
+    class: Drupal\xapi_listener\ListenerService
+    arguments: ['@database']

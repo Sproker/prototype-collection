@@ -1,0 +1,65 @@
+<?php
+
+use Drupal\Core\Entity\BundleEntityFormBase;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\quiz\Entity\QuizQuestionType;
+
+/**
+ * @file
+ * Long_answer question type for the Quiz module.
+ *
+ * Long answer questions make use of the quiz question framework
+ * (quiz_question.module). The functions in this file are largely used for
+ * grading long answer questions. Most of the real logic is in
+ * long_answer.classes.inc.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function long_answer_help($path, $arg) {
+  if ($path == 'admin/help#long_answer') {
+    return '<p>' . t('This module provides long-answer (essay, multi-paragraph) questions to the quiz module.') .
+      '</p><p>' . t('A long-answer question is designed to provide the quiz taker a lengthy area to expand on ideas.
+      Common forms of long-answer questions include essays, single paragraph responses, hypothesis design problems,
+      outlines and summaries, and lengthier math problems
+      where the focus is on showing work rather than simply getting the correct answer.') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add multiple choice defaults to the bundle form.
+ */
+function quiz_long_answer_form_quiz_question_type_edit_form_alter(array &$form, FormStateInterface $form_state) {
+  if ($form_state->getFormObject() instanceof BundleEntityFormBase) {
+    if ($form_state->getFormObject()->getEntity()->id() == 'long_answer') {
+      $config = Drupal::config('quiz_long_answer.settings');
+      $form['default_max_score'] = [
+        '#type' => 'textfield',
+        '#title' => t('Default max score'),
+        '#description' => t('Choose the default maximum score for a long answer question.'),
+        '#default_value' => $config->get('default_max_score'),
+      ];
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ *
+ * Set configuration.
+ */
+function quiz_long_answer_entity_update(EntityInterface $entity) {
+  if (!$entity instanceof QuizQuestionType) {
+    return;
+  }
+
+  if ($entity->id() == 'long_answer') {
+    $config = Drupal::configFactory()->getEditable('quiz_long_answer.settings');
+    $config->set('scoring', $entity->scoring);
+    $config->save();
+  }
+}

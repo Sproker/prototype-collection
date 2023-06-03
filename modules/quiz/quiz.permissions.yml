@@ -1,0 +1,41 @@
+administer quiz configuration:
+  title: Administer quiz configuration
+  description: Control the various settings and behaviours of quiz
+
+administer quiz result types:
+  title: Administer quiz result types
+  description: Allow users to manage quiz result types and fields.
+
+# Managing quizzes:
+access quiz:
+  title: Take quiz
+  description: Can access (take) all available quizzes.
+
+# Allow quiz creator to view results
+view results for own quiz:
+  title: View results for own quiz
+  description: Quiz authors can view results for their own quizzes.
+
+# Allow quiz creator to delete results
+delete results for own quiz:
+  title: Delete results for own quiz
+
+# Allow quiz creator to score results
+score own quiz:
+  title: Update results for own quiz
+
+# Allow the user to see the correct answer, when viewed outside a quiz.
+view any quiz question correct response:
+  title: View any quiz question correct response
+  description: Allow the user to see the correct answer, when viewed outside a quiz.
+
+# Allows users to pick a name for their questions. Otherwise this is auto
+# generated.
+edit question titles:
+  title: Edit question titles
+  description: Questions automatically get a title based on the question text. This allows titles to be set manually.
+
+# Bypass the Quiz revisioning restrictions.
+override quiz revisioning:
+  title: Override quiz revisioning
+  description: WARNING!!! Users with this permission can edit quizzes and questions without revisioning. This may cause issues with reporting or even errors on the site.

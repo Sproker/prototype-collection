@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Quiz_page question type for the Quiz module.
+ *
+ * Pages are implemented as a question type. However, they do not affect the
+ * score.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function quiz_page_help($path, $args) {
+  if ($path == 'admin/help#quiz_pages') {
+    return t('Provides pages which can contain questions in a quiz.');
+  }
+}

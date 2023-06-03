@@ -1,0 +1,100 @@
+version: '2'
+services:
+
+    mongo:
+        image: mongo:4
+        restart: unless-stopped
+        volumes:
+            - learninglocker_mongo:/data/db
+        ports:
+            - 27018:27017
+
+    redis:
+        image: redis:4-alpine
+        restart: unless-stopped
+
+    xapi:
+        image: learninglocker/xapi-service:2.1.10
+        restart: unless-stopped
+        environment:
+            - MONGO_URL=mongodb://mongo:27017/learninglocker_v2
+            - MONGO_DB=learninglocker_v2
+            - REDIS_URL=redis://redis:6379/0
+        depends_on:
+            - mongo
+            - redis
+        volumes:
+            - learninglocker_xapi-storage:/usr/src/app/storage
+
+    api:
+        image: michzimny/learninglocker2-app:${DOCKER_TAG}
+        environment:
+            - DOMAIN_NAME
+            - APP_SECRET
+            - SMTP_HOST
+            - SMTP_PORT
+            - SMTP_SECURED
+            - SMTP_USER
+            - SMTP_PASS
+        command: "node api/dist/server"
+        restart: unless-stopped
+        depends_on:
+            - mongo
+            - redis
+        volumes:
+            - learninglocker_app-storage:/opt/learninglocker/storage
+
+    ui:
+        image: michzimny/learninglocker2-app:${DOCKER_TAG}
+        environment:
+            - DOMAIN_NAME
+            - APP_SECRET
+            - SMTP_HOST
+            - SMTP_PORT
+            - SMTP_SECURED
+            - SMTP_USER
+            - SMTP_PASS
+        command: "./entrypoint-ui.sh"
+        restart: unless-stopped
+        depends_on:
+            - mongo
+            - redis
+            - api
+        volumes:
+            - learninglocker_app-storage:/opt/learninglocker/storage
+            - learninglocker_ui-logs:/opt/learninglocker/logs
+
+    worker:
+        image: michzimny/learninglocker2-app:${DOCKER_TAG}
+        environment:
+            - DOMAIN_NAME
+            - APP_SECRET
+            - SMTP_HOST
+            - SMTP_PORT
+            - SMTP_SECURED
+            - SMTP_USER
+            - SMTP_PASS
+        command: "node worker/dist/server"
+        restart: unless-stopped
+        depends_on:
+            - mongo
+            - redis
+        volumes:
+            - learninglocker_app-storage:/opt/learninglocker/storage
+
+    nginx:
+        image: michzimny/learninglocker2-nginx:${DOCKER_TAG}
+        environment:
+            - DOMAIN_NAME
+        restart: unless-stopped
+        depends_on:
+            - ui
+            - xapi
+        ports:
+            - "4000:4000"
+
+volumes:
+    learninglocker_mongo:
+    learninglocker_app-storage:
+    learninglocker_ui-logs:
+    learninglocker_xapi-storage:

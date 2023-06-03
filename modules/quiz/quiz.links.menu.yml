@@ -1,0 +1,82 @@
+# Admin page
+quiz.admin:
+  title: Quiz
+  route_name: quiz.admin
+  description: 'Administer quiz settings.'
+  parent: system.admin
+
+# Admin blocks
+quiz.admin.quizzes:
+  title: Quiz
+  route_name: quiz.admin.quizzes
+  parent: quiz.admin
+  weight: 1
+quiz.admin.questions:
+  title: Questions
+  route_name: quiz.admin.questions
+  parent: quiz.admin
+  weight: 2
+quiz.admin.reports:
+  title: Reports
+  route_name: quiz.admin.reports
+  parent: quiz.admin
+  weight: 3
+quiz.admin.structure:
+  title: Structure
+  route_name: quiz.admin.structure
+  parent: quiz.admin
+  weight: 4
+
+# Quizzes
+entity.quiz.collection:
+  title: 'Quizzes'
+  parent:  quiz.admin.quizzes
+  description: 'Create and manage quizzes.'
+  route_name: entity.quiz.collection
+  weight: 1
+quiz.admin.settings:
+  title: Settings
+  route_name: quiz.admin.settings
+  description: 'Administer quiz settings.'
+  parent: quiz.admin.quizzes
+  weight: 2
+
+# Questions
+entity.quiz_question.collection:
+  title: 'Questions'
+  parent: quiz.admin.questions
+  description: 'Create and manage quiz questions.'
+  route_name: entity.quiz_question.collection
+  weight: 1
+
+# Data types
+entity.quiz_type.collection:
+  title: 'Quiz types'
+  parent: quiz.admin.structure
+  description: 'Create and manage quiz types.'
+  route_name: entity.quiz_type.collection
+  weight: 1
+entity.quiz_question_type.collection:
+  title: 'Question types'
+  parent: quiz.admin.structure
+  description: 'Create and manage quiz question types.'
+  route_name: entity.quiz_question_type.collection
+  weight: 2
+entity.quiz_result_type.collection:
+  title: 'Result types'
+  parent: quiz.admin.structure
+  description: 'Create and manage quiz result types.'
+  route_name: entity.quiz_result_type.collection
+  weight: 3
+entity.quiz_result_answer_type.collection:
+  title: 'Answer types'
+  parent: quiz.admin.structure
+  description: 'Create and manage quiz result answer types.'
+  route_name: entity.quiz_result_answer_type.collection
+  weight: 4
+entity.quiz_feedback_type.collection:
+  title: Feedback types
+  route_name: entity.quiz_feedback_type.collection
+  description: 'Administer quiz feedback types and conditions.'
+  parent: quiz.admin.structure
+  weight: 5

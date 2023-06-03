@@ -1,0 +1,57 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.quiz_question.short_answer.short_answer_correct
+    - field.field.quiz_question.short_answer.short_answer_evaluation
+    - quiz.question.type.short_answer
+  enforced:
+    module:
+      - quiz_short_answer
+  module:
+    - text
+id: quiz_question.short_answer.default
+targetEntityType: quiz_question
+bundle: short_answer
+mode: default
+content:
+  body:
+    type: text_textarea
+    region: content
+    weight: 1
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  feedback:
+    type: text_textarea
+    region: content
+    weight: 26
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  short_answer_correct:
+    weight: 2
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  short_answer_evaluation:
+    weight: 3
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+  title:
+    type: string_textfield
+    region: content
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }
+

@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - quiz
+id: quiz_question.answer_text_processing
+field_name: answer_text_processing
+entity_type: quiz_question
+type: boolean
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
+

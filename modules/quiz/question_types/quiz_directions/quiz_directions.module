@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Quiz_directions question type for the Quiz module.
+ *
+ * Directions are implemented as a question type. However, they do not affect
+ * the score.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function quiz_directions_help($path, $args) {
+  if ($path == 'admin/help#quiz_directions') {
+    return t('Provides directions which can be inserted alongside questions in a quiz.');
+  }
+}
